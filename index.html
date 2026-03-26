@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sauerteig Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cream: #F7F2E8; --warm: #EDE5D0; --tan: #D4C5A0; --brown: #8B6914;
+    --dark-brown: #4A3508; --rust: #C0622A; --rust-light: #F0E0D0;
+    --text: #2C1F0A; --text-muted: #8B7355; --white: #FEFCF7;
+    --border: rgba(139,105,20,0.2); --shadow: 0 2px 20px rgba(74,53,8,0.08);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh;
+    background-image: radial-gradient(ellipse at 10% 10%, rgba(192,98,42,0.05) 0%, transparent 50%), radial-gradient(ellipse at 90% 80%, rgba(139,105,20,0.07) 0%, transparent 50%); }
+  nav { background: var(--dark-brown); padding: 0 2rem; display: flex; align-items: center; height: 60px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+  .nav-brand { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--warm); margin-right: auto; display: flex; align-items: center; gap: 10px; }
+  .nav-tabs { display: flex; height: 100%; }
+  .nav-tab { height: 100%; padding: 0 18px; font-size: 13px; font-weight: 500; color: rgba(237,229,208,0.6); cursor: pointer; border: none; background: none; border-bottom: 3px solid transparent; transition: all 0.2s; letter-spacing: 0.04em; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
+  .nav-tab:hover { color: var(--warm); }
+  .nav-tab.active { color: var(--warm); border-bottom-color: var(--rust); }
+  .page { display: none; padding: 2rem; max-width: 900px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; color: var(--dark-brown); margin-bottom: 4px; }
+  h2 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 500; color: var(--dark-brown); margin-bottom: 1rem; }
+  .page-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 2rem; }
+  .card { background: var(--white); border-radius: 16px; border: 1px solid var(--border); padding: 1.5rem; box-shadow: var(--shadow); margin-bottom: 1.25rem; }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 500; color: var(--dark-brown); margin-bottom: 1.2rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .slider-label { font-size: 13px; color: var(--text-muted); min-width: 200px; }
+  .slider-row input[type=range] { -webkit-appearance: none; flex: 1; height: 4px; background: var(--tan); border-radius: 2px; outline: none; }
+  .slider-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--brown); cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: transform 0.1s; }
+  .slider-row input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  .slider-val { font-size: 13px; font-weight: 500; min-width: 60px; text-align: right; color: var(--brown); }
+  .toggle-group { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .toggle-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; font-weight: 500; cursor: pointer; background: var(--white); color: var(--text-muted); transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+  .toggle-btn:hover { border-color: var(--brown); color: var(--brown); }
+  .toggle-btn.active { background: var(--dark-brown); color: var(--warm); border-color: var(--dark-brown); }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 1.25rem 0; }
+  .result-item { background: var(--cream); border-radius: 12px; padding: 14px 12px; text-align: center; border: 1px solid var(--border); transition: transform 0.15s; }
+  .result-item:hover { transform: translateY(-2px); }
+  .result-item.accent { background: var(--dark-brown); border-color: var(--dark-brown); }
+  .result-item.accent .ri-label { color: rgba(237,229,208,0.7); }
+  .result-item.accent .ri-value { color: var(--warm); }
+  .result-item.discard { background: var(--rust-light); border-color: rgba(192,98,42,0.3); }
+  .result-item.discard .ri-label { color: var(--rust); }
+  .result-item.discard .ri-value { color: var(--rust); }
+  .ri-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .ri-value { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--dark-brown); }
+  .ri-unit { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .steps { list-style: none; counter-reset: step; }
+  .steps li { counter-increment: step; display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.6; color: var(--text-muted); }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before { content: counter(step); min-width: 26px; height: 26px; border-radius: 50%; background: var(--rust); color: white; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .steps li strong { color: var(--text); }
+  .timer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .timer-card { background: var(--cream); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+  .timer-name { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .timer-display { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--dark-brown); margin-bottom: 8px; }
+  .timer-display.running { color: var(--rust); }
+  .timer-display.done { color: #2A7A3A; }
+  .timer-btns { display: flex; gap: 6px; justify-content: center; }
+  .timer-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; background: var(--white); color: var(--text-muted); font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .timer-btn:hover { background: var(--dark-brown); color: var(--warm); border-color: var(--dark-brown); }
+  .recipe-list { display: grid; gap: 10px; }
+  .recipe-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.5rem; transition: all 0.2s; display: flex; align-items: center; gap: 1rem; }
+  .recipe-card:hover { box-shadow: 0 4px 20px rgba(74,53,8,0.12); transform: translateY(-2px); }
+  .recipe-icon { font-size: 28px; }
+  .recipe-info { flex: 1; }
+  .recipe-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 500; color: var(--dark-brown); margin-bottom: 3px; }
+  .recipe-meta { font-size: 12px; color: var(--text-muted); }
+  .recipe-actions { display: flex; gap: 6px; }
+  .btn-small { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; background: var(--white); color: var(--text-muted); font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+  .btn-small:hover { background: var(--dark-brown); color: var(--warm); border-color: var(--dark-brown); }
+  .btn-primary { padding: 10px 20px; border-radius: 24px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; background: var(--rust); color: white; font-family: 'DM Sans', sans-serif; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-primary:hover { background: var(--dark-brown); transform: translateY(-1px); }
+  .form-row { margin-bottom: 14px; }
+  .form-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text); outline: none; transition: border-color 0.15s; }
+  .form-input:focus { border-color: var(--brown); }
+  .info-panel { background: linear-gradient(135deg, var(--rust-light), var(--cream)); border: 1px solid rgba(192,98,42,0.2); border-radius: 12px; padding: 1rem 1.25rem; font-size: 13px; color: var(--text-muted); line-height: 1.7; margin-top: 1rem; }
+  .info-panel strong { color: var(--rust); }
+  .discard-banner { background: var(--rust-light); border: 1px solid rgba(192,98,42,0.3); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: var(--rust); margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(44,31,10,0.5); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 20px; padding: 2rem; max-width: 480px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalIn 0.25s ease; }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .flex-between { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .section-divider { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin: 1rem 0 0.5rem; }
+  .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--dark-brown); color: var(--warm); padding: 12px 20px; border-radius: 12px; font-size: 14px; opacity: 0; transform: translateY(10px); transition: all 0.3s; z-index: 300; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Mode switch */
+  .mode-switch { display: flex; background: var(--warm); border-radius: 30px; padding: 4px; gap: 4px; margin-bottom: 1.5rem; }
+  .mode-btn { flex: 1; padding: 10px 12px; border-radius: 26px; border: none; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; color: var(--text-muted); font-family: 'DM Sans', sans-serif; transition: all 0.2s; text-align: center; line-height: 1.3; }
+  .mode-btn.active { background: var(--white); color: var(--dark-brown); box-shadow: 0 1px 6px rgba(0,0,0,0.12); }
+
+  /* LM Gramm Input */
+  .lm-input-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .lm-input-row label { font-size: 13px; color: var(--text-muted); min-width: 200px; }
+  .lm-gram-input { width: 120px; padding: 10px 14px; border: 2px solid var(--brown); border-radius: 12px; font-size: 20px; font-weight: 500; font-family: 'Playfair Display', serif; background: var(--cream); color: var(--dark-brown); outline: none; text-align: center; }
+  .lm-gram-input:focus { border-color: var(--rust); }
+  .lm-gram-unit { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 1rem; } .nav-tab { padding: 0 10px; font-size: 11px; }
+    .page { padding: 1.25rem; } .slider-label { min-width: 130px; font-size: 12px; } h1 { font-size: 24px; }
+    .lm-input-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand"><span>🌾</span> Sauerteig Studio</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('rechner')">Rechner</button>
+    <button class="nav-tab" onclick="showPage('discard')">Anstellgut</button>
+    <button class="nav-tab" onclick="showPage('timer')">Timer</button>
+    <button class="nav-tab" onclick="showPage('rezepte')">Rezepte</button>
+    <button class="nav-tab" onclick="showPage('info')">Tipps</button>
+  </div>
+</nav>
+
+<!-- RECHNER -->
+<div class="page active" id="page-rechner">
+  <h1>Sauerteig Rechner</h1>
+  <p class="page-subtitle">Berechne dein perfektes Lievito Madre Brot</p>
+
+  <!-- MODE SWITCH -->
+  <div class="mode-switch">
+    <button class="mode-btn active" id="modeBtn1" onclick="setMode('brot')">🍞 Brotgröße eingeben<br><small style="font-size:11px;opacity:0.7;">→ LM wird berechnet</small></button>
+    <button class="mode-btn" id="modeBtn2" onclick="setMode('lm')">🥣 LM-Menge eingeben<br><small style="font-size:11px;opacity:0.7;">→ Rezept wird berechnet</small></button>
+  </div>
+
+  <!-- MODUS: BROTGRÖSSE -->
+  <div id="modeBrot">
+    <div class="card">
+      <div class="card-title">🍞 Brotgröße</div>
+      <div class="slider-row">
+        <span class="slider-label">Teiggewicht</span>
+        <input type="range" id="loafWeight" min="400" max="2000" step="50" value="900" oninput="calc()">
+        <span class="slider-val" id="loafWeightVal">900 g</span>
+      </div>
+      <div class="toggle-group" id="loafCount">
+        <button class="toggle-btn active" onclick="setLoaves(1,this)">1 Brot</button>
+        <button class="toggle-btn" onclick="setLoaves(2,this)">2 Brote</button>
+        <button class="toggle-btn" onclick="setLoaves(3,this)">3 Brote</button>
+        <button class="toggle-btn" onclick="setLoaves(4,this)">4 Brote</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODUS: LM-MENGE -->
+  <div id="modeLM" style="display:none;">
+    <div class="card">
+      <div class="card-title">🥣 Mein Lievito Madre</div>
+      <div class="lm-input-row">
+        <label>Vorhandene LM-Menge</label>
+        <input type="number" class="lm-gram-input" id="lmGrams" min="50" max="3000" step="10" value="493" oninput="calc()">
+        <span class="lm-gram-unit">g</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Der Rechner berechnet daraus Mehl, Wasser, Salz und Brotgröße.</div>
+    </div>
+  </div>
+
+  <!-- PARAMETER (immer sichtbar) -->
+  <div class="card">
+    <div class="card-title">⚙️ Parameter</div>
+    <div class="slider-row">
+      <span class="slider-label">Hydratation</span>
+      <input type="range" id="hydration" min="55" max="90" step="1" value="70" oninput="calc()">
+      <span class="slider-val" id="hydrationVal">70 %</span>
+    </div>
+    <div class="slider-row" id="lmPctRow">
+      <span class="slider-label">Lievito Madre Anteil</span>
+      <input type="range" id="lmPct" min="10" max="40" step="1" value="20" oninput="calc()">
+      <span class="slider-val" id="lmPctVal">20 %</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Salzanteil</span>
+      <input type="range" id="saltPct" min="1.5" max="2.5" step="0.1" value="2" oninput="calc()">
+      <span class="slider-val" id="saltPctVal">2.0 %</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Hefe (optional)</span>
+      <input type="range" id="yeastPct" min="0" max="1" step="0.1" value="0" oninput="calc()">
+      <span class="slider-val" id="yeastPctVal">0 g</span>
+    </div>
+    <div>
+      <div class="section-divider">LM Hydratation</div>
+      <div class="toggle-group" id="lmHydToggle">
+        <button class="toggle-btn active" onclick="setLMHyd(50,this)">50 % klassisch</button>
+        <button class="toggle-btn" onclick="setLMHyd(65,this)">65 % weich</button>
+        <button class="toggle-btn" onclick="setLMHyd(100,this)">100 % flüssig</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Dein Rezept</div>
+    <div class="results-grid">
+      <div class="result-item accent">
+        <div class="ri-label">LM gesamt</div>
+        <div class="ri-value" id="rLM">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item">
+        <div class="ri-label">Mehl</div>
+        <div class="ri-value" id="rFlour">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item">
+        <div class="ri-label">Wasser</div>
+        <div class="ri-value" id="rWater">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item">
+        <div class="ri-label">Salz</div>
+        <div class="ri-value" id="rSalt">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item" id="yeastCard" style="display:none;">
+        <div class="ri-label">Hefe</div>
+        <div class="ri-value" id="rYeast">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item">
+        <div class="ri-label" id="rTotalLabel">Gesamtteig</div>
+        <div class="ri-value" id="rTotal">—</div>
+        <div class="ri-unit" id="rTotalUnit">Gramm</div>
+      </div>
+    </div>
+    <div class="info-panel" id="refreshPanel"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 Anleitung</div>
+    <ul class="steps" id="stepsList"></ul>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <button class="btn-primary" onclick="saveAsRecipe()">💾 Als Rezept speichern</button>
+    <button class="btn-primary" style="background:var(--brown);" onclick="showPage('timer')">⏱ Timer starten</button>
+  </div>
+</div>
+
+<!-- ANSTELLGUT / DISCARD -->
+<div class="page" id="page-discard">
+  <h1>Anstellgut verbacken</h1>
+  <p class="page-subtitle">Überschüssiges Anstellgut direkt verbacken statt entsorgen.</p>
+  <div class="card">
+    <div class="card-title">🥣 Dein Anstellgut</div>
+    <div class="lm-input-row">
+      <label>Vorhandenes Anstellgut</label>
+      <input type="number" class="lm-gram-input" id="discardAmount" min="50" max="2000" step="10" value="200" oninput="calcDiscard()">
+      <span class="lm-gram-unit">g</span>
+    </div>
+    <div>
+      <div class="section-divider">LM Hydratation</div>
+      <div class="toggle-group" id="discardHydToggle">
+        <button class="toggle-btn active" onclick="setDiscardHyd(50,this)">50 % klassisch</button>
+        <button class="toggle-btn" onclick="setDiscardHyd(65,this)">65 % weich</button>
+        <button class="toggle-btn" onclick="setDiscardHyd(100,this)">100 % flüssig</button>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚙️ Brotparameter</div>
+    <div class="slider-row">
+      <span class="slider-label">Hydratation Teig</span>
+      <input type="range" id="dHydration" min="55" max="90" step="1" value="70" oninput="calcDiscard()">
+      <span class="slider-val" id="dHydrationVal">70 %</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Salzanteil</span>
+      <input type="range" id="dSaltPct" min="1.5" max="2.5" step="0.1" value="2" oninput="calcDiscard()">
+      <span class="slider-val" id="dSaltPctVal">2.0 %</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Rezept</div>
+    <div id="discardBanner" class="discard-banner"><span>♻️</span><span id="discardBannerText"></span></div>
+    <div class="results-grid">
+      <div class="result-item discard">
+        <div class="ri-label">Anstellgut</div>
+        <div class="ri-value" id="dLM">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item">
+        <div class="ri-label">Mehl</div>
+        <div class="ri-value" id="dFlour">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item">
+        <div class="ri-label">Wasser</div>
+        <div class="ri-value" id="dWater">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item">
+        <div class="ri-label">Salz</div>
+        <div class="ri-value" id="dSalt">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+      <div class="result-item accent">
+        <div class="ri-label">Brotgewicht ca.</div>
+        <div class="ri-value" id="dLoaf">—</div>
+        <div class="ri-unit">Gramm</div>
+      </div>
+    </div>
+    <div class="info-panel" id="discardInfo"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📝 Anleitung</div>
+    <ul class="steps" id="discardSteps"></ul>
+  </div>
+  <button class="btn-primary" onclick="saveDiscardRecipe()">💾 Als Rezept speichern</button>
+</div>
+
+<!-- TIMER -->
+<div class="page" id="page-timer">
+  <h1>Back-Timer</h1>
+  <p class="page-subtitle">Behalte alle Phasen im Blick</p>
+  <div class="card">
+    <div class="card-title">⏱ Aktive Timer</div>
+    <div class="timer-grid" id="timerGrid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">➕ Eigenen Timer</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div class="form-row" style="flex:1;margin-bottom:0;"><label class="form-label">Name</label><input type="text" class="form-input" id="customTimerName" placeholder="z.B. Autolyse"></div>
+      <div class="form-row" style="width:90px;margin-bottom:0;"><label class="form-label">Stunden</label><input type="number" class="form-input" id="customTimerH" min="0" max="24" value="0"></div>
+      <div class="form-row" style="width:90px;margin-bottom:0;"><label class="form-label">Minuten</label><input type="number" class="form-input" id="customTimerM" min="0" max="59" value="30"></div>
+      <button class="btn-primary" onclick="addCustomTimer()">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- REZEPTE -->
+<div class="page" id="page-rezepte">
+  <div class="flex-between">
+    <div><h1>Meine Rezepte</h1><p class="page-subtitle">Gespeicherte Brotrezepte</p></div>
+    <button class="btn-primary" onclick="openNewRecipeModal()">➕ Neues Rezept</button>
+  </div>
+  <div class="recipe-list" id="recipeList"></div>
+</div>
+
+<!-- TIPPS -->
+<div class="page" id="page-info">
+  <h1>Bäcker-Tipps</h1>
+  <p class="page-subtitle">Alles über Lievito Madre & Sauerteig</p>
+  <div class="card">
+    <div class="card-title">🌡 Was ist Lievito Madre?</div>
+    <p style="font-size:14px;color:var(--text-muted);line-height:1.8;">Lievito Madre (ital. "Mutterhefe") ist ein fester Weizensauerteig mit 45–50 % Hydratation. Er verleiht Brot eine mildere Säure, offene Porung und eine rösche Kruste.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🔄 LM auffrischen</div>
+    <ul class="steps">
+      <li><strong>Anstellgut entnehmen:</strong> Die gesamte vorhandene Menge verwenden.</li>
+      <li><strong>Mehl zugeben:</strong> Die gleiche Menge Weizenmehl (Type 550 oder 00).</li>
+      <li><strong>Wasser zugeben:</strong> Bei 50 % Hydratation halb so viel Wasser wie Mehl.</li>
+      <li><strong>Kneten:</strong> Zu einem glatten Teig kneten (ca. 5–10 Min).</li>
+      <li><strong>Reifen lassen:</strong> 4–8 Stunden bei Raumtemperatur bis zur Verdoppelung.</li>
+      <li><strong>Kühl lagern:</strong> Im Kühlschrank, alle 5–7 Tage auffrischen.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-title">♻️ Warum Anstellgut verbacken?</div>
+    <p style="font-size:14px;color:var(--text-muted);line-height:1.8;">Beim Auffrischen entsteht überschüssiges Anstellgut. Statt es wegzuwerfen, kannst du es direkt verbacken — der "Anstellgut" Rechner berechnet automatisch ein Rezept um deine Menge herum.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🕐 Zeitplan (Beispiel)</div>
+    <div style="display:grid;gap:6px;">
+      <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:var(--cream);border-radius:10px;font-size:13px;"><span style="min-width:60px;font-weight:500;color:var(--rust);">18:00</span><span style="color:var(--text-muted);">LM auffrischen</span></div>
+      <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:var(--cream);border-radius:10px;font-size:13px;"><span style="min-width:60px;font-weight:500;color:var(--rust);">22:00</span><span style="color:var(--text-muted);">Hauptteig ansetzen</span></div>
+      <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:var(--cream);border-radius:10px;font-size:13px;"><span style="min-width:60px;font-weight:500;color:var(--rust);">22:30</span><span style="color:var(--text-muted);">Dehnen & Falten (alle 30 Min, 4×)</span></div>
+      <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:var(--cream);border-radius:10px;font-size:13px;"><span style="min-width:60px;font-weight:500;color:var(--rust);">00:30</span><span style="color:var(--text-muted);">Formen & Kühlschrank</span></div>
+      <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:var(--cream);border-radius:10px;font-size:13px;"><span style="min-width:60px;font-weight:500;color:var(--rust);">09:00</span><span style="color:var(--text-muted);">Ofen auf 250 °C vorheizen</span></div>
+      <div style="display:flex;gap:12px;align-items:center;padding:10px 14px;background:var(--cream);border-radius:10px;font-size:13px;"><span style="min-width:60px;font-weight:500;color:var(--rust);">09:30</span><span style="color:var(--text-muted);">Backen: 20 Min mit Dampf, 25 Min ohne</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="recipeModal">
+  <div class="modal">
+    <h2>Rezept speichern</h2>
+    <div class="form-row"><label class="form-label">Rezeptname</label><input type="text" class="form-input" id="recipeName" placeholder="z.B. Mein Landbrot"></div>
+    <div class="form-row"><label class="form-label">Mehlsorte</label><input type="text" class="form-input" id="recipeFlourType" placeholder="z.B. Weizen 550, Dinkel 630 ..."></div>
+    <div class="form-row"><label class="form-label">Notizen</label><textarea class="form-input" id="recipeNotes" rows="3" placeholder="Besonderheiten, Tipps ..."></textarea></div>
+    <div id="recipePreview" style="background:var(--cream);border-radius:10px;padding:12px;font-size:13px;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.8;"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn-small" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-primary" onclick="saveRecipe()">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let loaves = 1, lmHyd = 50, discardHyd = 50;
+  let calcMode = 'brot'; // 'brot' oder 'lm'
+  let recipes = JSON.parse(localStorage.getItem('st_recipes') || '[]');
+  let timers = [], timerInterval = null;
+  let currentCalc = {}, currentDiscard = {}, saveMode = 'rechner';
+
+  function setMode(mode) {
+    calcMode = mode;
+    document.getElementById('modeBtn1').classList.toggle('active', mode === 'brot');
+    document.getElementById('modeBtn2').classList.toggle('active', mode === 'lm');
+    document.getElementById('modeBrot').style.display = mode === 'brot' ? 'block' : 'none';
+    document.getElementById('modeLM').style.display = mode === 'lm' ? 'block' : 'none';
+    document.getElementById('lmPctRow').style.display = mode === 'brot' ? 'flex' : 'none';
+    calc();
+  }
+
+  function setLoaves(n, btn) {
+    loaves = n;
+    document.querySelectorAll('#loafCount .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); calc();
+  }
+  function setLMHyd(v, btn) {
+    lmHyd = v;
+    document.querySelectorAll('#lmHydToggle .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); calc();
+  }
+  function r(v) { return Math.round(v); }
+
+  function calc() {
+    const hydration = +document.getElementById('hydration').value / 100;
+    const saltPct = +document.getElementById('saltPct').value / 100;
+    const yeastSlider = +document.getElementById('yeastPct').value;
+    const lmHydR = lmHyd / 100;
+
+    document.getElementById('hydrationVal').textContent = Math.round(hydration*100) + ' %';
+    document.getElementById('saltPctVal').textContent = (saltPct*100).toFixed(1) + ' %';
+
+    let lmWeight, totalFlour, mainFlour, mainWater, salt, totalDough, loafWeight;
+
+    if (calcMode === 'brot') {
+      const loafW = +document.getElementById('loafWeight').value;
+      const lmPct = +document.getElementById('lmPct').value / 100;
+      document.getElementById('loafWeightVal').textContent = loafW + ' g';
+      document.getElementById('lmPctVal').textContent = Math.round(lmPct*100) + ' %';
+
+      totalDough = loafW * loaves / 0.88;
+      totalFlour = totalDough / (1 + hydration + saltPct);
+      lmWeight = totalFlour * lmPct;
+      const lmFlour = lmWeight / (1 + lmHydR);
+      const lmWater = lmWeight - lmFlour;
+      mainFlour = totalFlour - lmFlour;
+      mainWater = totalFlour * hydration - lmWater;
+      salt = totalFlour * saltPct;
+      loafWeight = r(loafW * loaves);
+
+      document.getElementById('rTotalLabel').textContent = 'Gesamtteig';
+      document.getElementById('rTotalUnit').textContent = 'Gramm';
+      document.getElementById('rTotal').textContent = r(totalDough);
+
+    } else {
+      // Modus: LM-Menge gegeben
+      lmWeight = +document.getElementById('lmGrams').value || 493;
+      const lmFlour = lmWeight / (1 + lmHydR);
+      const lmWater = lmWeight - lmFlour;
+      // LM entspricht ~20% des Gesamtmehls
+      totalFlour = lmFlour / 0.20;
+      mainFlour = totalFlour - lmFlour;
+      mainWater = totalFlour * hydration - lmWater;
+      salt = totalFlour * saltPct;
+      totalDough = lmWeight + mainFlour + mainWater + salt;
+      loafWeight = r(totalDough * 0.88);
+
+      document.getElementById('rTotalLabel').textContent = 'Brotgewicht ca.';
+      document.getElementById('rTotalUnit').textContent = 'Gramm';
+      document.getElementById('rTotal').textContent = loafWeight;
+    }
+
+    const yeastG = yeastSlider > 0 ? Math.max(1, r(totalFlour * yeastSlider / 100)) : 0;
+    document.getElementById('yeastPctVal').textContent = yeastSlider > 0 ? yeastG + ' g' : '0 g';
+    document.getElementById('yeastCard').style.display = yeastSlider > 0 ? 'block' : 'none';
+    document.getElementById('rYeast').textContent = yeastG;
+    document.getElementById('rLM').textContent = r(lmWeight);
+    document.getElementById('rFlour').textContent = r(mainFlour);
+    document.getElementById('rWater').textContent = r(Math.max(0, mainWater));
+    document.getElementById('rSalt').textContent = r(salt);
+
+    const starter = r(lmWeight / 3);
+    const refreshFlour = r((lmWeight - starter) / (1 + lmHydR));
+    const refreshWater = r(lmWeight - starter - refreshFlour);
+    document.getElementById('refreshPanel').innerHTML =
+      `<strong>Auffrischen:</strong> ${starter} g Anstellgut + ${refreshFlour} g Mehl + ${refreshWater} g Wasser → 4–8 h reifen lassen.`;
+
+    const hefeStep = yeastG > 0 ? ` + <strong>${yeastG} g</strong> frische Hefe` : '';
+    document.getElementById('stepsList').innerHTML = `
+      <li>LM auffrischen: <strong>${starter} g</strong> Anstellgut + <strong>${refreshFlour} g</strong> Mehl + <strong>${refreshWater} g</strong> Wasser. 4–8 Std. reifen lassen.</li>
+      <li>Autolyse: <strong>${r(mainFlour)} g</strong> Mehl + <strong>${r(Math.max(0,mainWater)*0.9)} g</strong> Wasser (90 %) mischen, 30–60 Min ruhen.</li>
+      <li>Reifen LM (<strong>${r(lmWeight)} g</strong>)${hefeStep} einarbeiten, restliches Wasser zugeben.</li>
+      <li>Salz (<strong>${r(salt)} g</strong>) einkneten.</li>
+      <li>Stockgare: 4–6 Std. Alle 30 Min dehnen & falten (4×).</li>
+      <li>Formen, im Gärkorb 8–16 Std. kalt gären.</li>
+      <li>Ofen mit Topf auf 250 °C vorheizen (45 Min).</li>
+      <li>20 Min mit Deckel, 20–25 Min ohne Deckel goldbraun backen.</li>
+    `;
+    currentCalc = { loafWeight: calcMode==='lm' ? loafWeight : r(+document.getElementById('loafWeight').value * loaves), loaves, hydration: Math.round(hydration*100), lmPct: calcMode==='brot' ? +document.getElementById('lmPct').value : 20, saltPct: (saltPct*100).toFixed(1), lmHyd, lmWeight: r(lmWeight), mainFlour: r(mainFlour), mainWater: r(Math.max(0,mainWater)), salt: r(salt), yeastG, starter, refreshFlour, refreshWater, calcMode };
+  }
+
+  // DISCARD
+  function setDiscardHyd(v, btn) {
+    discardHyd = v;
+    document.querySelectorAll('#discardHydToggle .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); calcDiscard();
+  }
+  function calcDiscard() {
+    const discard = +document.getElementById('discardAmount').value || 200;
+    const hydration = +document.getElementById('dHydration').value / 100;
+    const saltPct = +document.getElementById('dSaltPct').value / 100;
+    document.getElementById('dHydrationVal').textContent = Math.round(hydration*100) + ' %';
+    document.getElementById('dSaltPctVal').textContent = (saltPct*100).toFixed(1) + ' %';
+    const lmHydR = discardHyd / 100;
+    const lmFlourContent = discard / (1 + lmHydR);
+    const lmWaterContent = discard - lmFlourContent;
+    const totalFlour = lmFlourContent / 0.20;
+    const mainFlour = totalFlour - lmFlourContent;
+    const mainWater = totalFlour * hydration - lmWaterContent;
+    const salt = totalFlour * saltPct;
+    const totalDough = discard + mainFlour + Math.max(0,mainWater) + salt;
+    const loafWeight = r(totalDough * 0.88);
+    document.getElementById('dLM').textContent = r(discard);
+    document.getElementById('dFlour').textContent = r(mainFlour);
+    document.getElementById('dWater').textContent = r(Math.max(0,mainWater));
+    document.getElementById('dSalt').textContent = r(salt);
+    document.getElementById('dLoaf').textContent = loafWeight;
+    document.getElementById('discardBannerText').textContent = `Deine ${r(discard)} g Anstellgut ergeben ein Brot von ca. ${loafWeight} g`;
+    document.getElementById('discardInfo').innerHTML = `<strong>Hinweis:</strong> Das Anstellgut ist nicht frisch aufgefrischt — das Brot wird etwas milder und dichter. Ideal für Alltagsbrot.`;
+    document.getElementById('discardSteps').innerHTML = `
+      <li>Anstellgut (<strong>${r(discard)} g</strong>) 1 Std. auf Raumtemperatur bringen.</li>
+      <li><strong>${r(mainFlour)} g</strong> Mehl + <strong>${r(Math.max(0,mainWater))} g</strong> Wasser mischen, 30 Min Autolyse.</li>
+      <li>Anstellgut einarbeiten und gut verkneten.</li>
+      <li>Salz (<strong>${r(salt)} g</strong>) einkneten.</li>
+      <li>Stockgare: 3–5 Std., 3× dehnen & falten.</li>
+      <li>Formen und über Nacht im Kühlschrank gären.</li>
+      <li>Bei 250 °C: 20 Min mit Dampf, 20 Min ohne.</li>
+    `;
+    currentDiscard = { discard: r(discard), mainFlour: r(mainFlour), mainWater: r(Math.max(0,mainWater)), salt: r(salt), loafWeight, hydration: Math.round(hydration*100), discardHyd };
+  }
+
+  // TIMER
+  const defaultTimers = [
+    {name:'LM auffrischen',hours:6,mins:0},{name:'Autolyse',hours:0,mins:30},
+    {name:'Stockgare',hours:4,mins:0},{name:'Stückgare kalt',hours:12,mins:0}
+  ];
+  function initTimers() {
+    timers = defaultTimers.map(t => ({...t,totalSecs:t.hours*3600+t.mins*60,remaining:t.hours*3600+t.mins*60,running:false,done:false,id:Math.random().toString(36).slice(2)}));
+    renderTimers();
+  }
+  function renderTimers() {
+    document.getElementById('timerGrid').innerHTML = timers.map(t => `
+      <div class="timer-card">
+        <div class="timer-name">${t.name}</div>
+        <div class="timer-display ${t.running?'running':t.done?'done':''}" id="td-${t.id}">${fmtTime(t.remaining)}</div>
+        <div class="timer-btns">
+          <button class="timer-btn" style="background:var(--rust);color:white;border-color:var(--rust);" onclick="toggleTimer('${t.id}')">${t.running?'⏸':t.done?'↺':'▶'}</button>
+          <button class="timer-btn" onclick="resetTimer('${t.id}')">↺</button>
+          <button class="timer-btn" onclick="removeTimer('${t.id}')">✕</button>
+        </div>
+      </div>`).join('');
+    startTimerLoop();
+  }
+  function fmtTime(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;}
+  function toggleTimer(id){const t=timers.find(x=>x.id===id);if(!t)return;if(t.done){resetTimer(id);return;}t.running=!t.running;renderTimers();}
+  function resetTimer(id){const t=timers.find(x=>x.id===id);if(!t)return;t.remaining=t.totalSecs;t.running=false;t.done=false;renderTimers();}
+  function removeTimer(id){timers=timers.filter(x=>x.id!==id);renderTimers();}
+  function addCustomTimer(){const name=document.getElementById('customTimerName').value.trim()||'Timer';const h=parseInt(document.getElementById('customTimerH').value)||0;const m=parseInt(document.getElementById('customTimerM').value)||0;const total=h*3600+m*60;if(!total)return;timers.push({name,hours:h,mins:m,totalSecs:total,remaining:total,running:false,done:false,id:Math.random().toString(36).slice(2)});renderTimers();}
+  function startTimerLoop(){if(timerInterval)clearInterval(timerInterval);timerInterval=setInterval(()=>{timers.forEach(t=>{if(!t.running||t.done)return;t.remaining--;if(t.remaining<=0){t.remaining=0;t.running=false;t.done=true;showToast(`⏰ ${t.name} ist fertig!`);}const d=document.getElementById('td-'+t.id);if(d){d.textContent=fmtTime(t.remaining);d.className='timer-display '+(t.running?'running':t.done?'done':'');}});},1000);}
+
+  // RECIPES
+  function renderRecipes() {
+    const list = document.getElementById('recipeList');
+    if (!recipes.length) { list.innerHTML=`<div style="text-align:center;padding:3rem;color:var(--text-muted);"><div style="font-size:48px;margin-bottom:1rem;">🌾</div><div>Noch keine Rezepte gespeichert.</div></div>`; return; }
+    const icons=['🍞','🥖','🫓','🌾','🧄'];
+    list.innerHTML=recipes.map((rec,i)=>`
+      <div class="recipe-card">
+        <div class="recipe-icon">${rec.isDiscard?'♻️':icons[i%icons.length]}</div>
+        <div class="recipe-info">
+          <div class="recipe-title">${rec.name}</div>
+          <div class="recipe-meta">${rec.isDiscard?`Anstellgut: ${rec.discard} g · Brot ca. ${rec.loafWeight} g`:`LM: ${rec.lmWeight} g · Mehl: ${rec.mainFlour} g · ${rec.hydration} % Hydration`}${rec.flour?' · '+rec.flour:''}</div>
+          ${rec.notes?`<div style="font-size:12px;color:var(--text-muted);margin-top:4px;font-style:italic;">${rec.notes}</div>`:''}
+        </div>
+        <div class="recipe-actions">
+          <button class="btn-small" onclick="loadRecipe(${i})">Laden</button>
+          <button class="btn-small" style="color:#c0392b;" onclick="deleteRecipe(${i})">Löschen</button>
+        </div>
+      </div>`).join('');
+  }
+  function openNewRecipeModal(){saveMode='rechner';calc();document.getElementById('recipeName').value='';document.getElementById('recipeFlourType').value='';document.getElementById('recipeNotes').value='';document.getElementById('recipePreview').innerHTML=`LM: <strong>${currentCalc.lmWeight} g</strong> · Mehl: <strong>${currentCalc.mainFlour} g</strong> · Wasser: <strong>${currentCalc.mainWater} g</strong> · Salz: <strong>${currentCalc.salt} g</strong>`;document.getElementById('recipeModal').classList.add('open');}
+  function saveAsRecipe(){saveMode='rechner';openNewRecipeModal();}
+  function saveDiscardRecipe(){saveMode='discard';document.getElementById('recipeName').value='';document.getElementById('recipeFlourType').value='';document.getElementById('recipeNotes').value='';document.getElementById('recipePreview').innerHTML=`Anstellgut: <strong>${currentDiscard.discard} g</strong> · Mehl: <strong>${currentDiscard.mainFlour} g</strong> · Wasser: <strong>${currentDiscard.mainWater} g</strong> · Salz: <strong>${currentDiscard.salt} g</strong>`;document.getElementById('recipeModal').classList.add('open');}
+  function saveRecipe(){const name=document.getElementById('recipeName').value.trim()||'Mein Brot';const flour=document.getElementById('recipeFlourType').value.trim();const notes=document.getElementById('recipeNotes').value.trim();const data=saveMode==='discard'?{...currentDiscard,name,flour,notes,isDiscard:true,date:new Date().toLocaleDateString('de')}:{...currentCalc,name,flour,notes,isDiscard:false,date:new Date().toLocaleDateString('de')};recipes.unshift(data);localStorage.setItem('st_recipes',JSON.stringify(recipes));renderRecipes();closeModal();showToast('✅ Rezept gespeichert!');}
+  function deleteRecipe(i){recipes.splice(i,1);localStorage.setItem('st_recipes',JSON.stringify(recipes));renderRecipes();}
+  function loadRecipe(i){const rec=recipes[i];if(rec.isDiscard){document.getElementById('discardAmount').value=rec.discard;calcDiscard();showPage('discard');}else{if(rec.calcMode==='lm'){setMode('lm');document.getElementById('lmGrams').value=rec.lmWeight;}else{setMode('brot');document.getElementById('loafWeight').value=rec.loafWeight;document.getElementById('lmPct').value=rec.lmPct;loaves=rec.loaves||1;document.querySelectorAll('#loafCount .toggle-btn').forEach((b,j)=>b.classList.toggle('active',j+1===loaves));}lmHyd=rec.lmHyd||50;document.querySelectorAll('#lmHydToggle .toggle-btn').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===lmHyd));calc();showPage('rechner');}showToast('📋 Rezept geladen!');}
+  function closeModal(){document.getElementById('recipeModal').classList.remove('open');}
+  document.getElementById('recipeModal').addEventListener('click',e=>{if(e.target===document.getElementById('recipeModal'))closeModal();});
+  function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');document.querySelector(`.nav-tab[onclick="showPage('${id}')"]`).classList.add('active');}
+  function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+  calc(); calcDiscard(); renderRecipes(); initTimers();
+</script>
+</body>
+</html>
